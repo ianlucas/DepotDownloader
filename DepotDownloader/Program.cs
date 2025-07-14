@@ -447,13 +447,29 @@ namespace DepotDownloader
             {
                 var strParam = args[index];
 
-                if (strParam[0] == '-') break;
+                if (strParam.StartsWith('-')) break;
 
                 var converter = TypeDescriptor.GetConverter(typeof(T));
                 if (converter != null)
                 {
                     consumedArgs[index] = true;
-                    list.Add((T)converter.ConvertFromString(strParam));
+                    var valueParts = strParam.Split(',');
+
+                    foreach (var part in valueParts)
+                    {
+                        try
+                        {
+                            var trimmedPart = part.Trim();
+                            if (!string.IsNullOrEmpty(trimmedPart))
+                            {
+                                list.Add((T)converter.ConvertFromString(trimmedPart));
+                            }
+                        }
+                        catch (NotSupportedException ex)
+                        {
+                            Console.WriteLine($"Warning: Could not convert '{part}'. {ex.Message}");
+                        }
+                    }
                 }
 
                 index++;
